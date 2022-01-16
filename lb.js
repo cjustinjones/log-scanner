@@ -16,9 +16,8 @@ const workers = new Map([
     ["/var/log/syslog", { "port": 3001, "encoding": "utf8" }],
     ["/var/log/auth.log", { "port": 3002, "encoding": "utf8" }],
     ["/var/log/kern.log", { "port": 3003, "encoding": "utf8" }],
-    ["/windows/logs/DAX2_API_Install.log", { "port": 3004, "encoding": "utf16le" }]
+    ["/users/preatl1cjj/foo.log", { "port": 3004, "encoding": "utf8" }]
 ]);
-console.log("Getting " + workers.get("/var/log/syslog").port);
 
 const getWorkerUrl = (file, port) => `http://localhost:${port}${file}`;
 

@@ -1,11 +1,11 @@
-//const Buffer = require('buffer');
+const dayjs = require('dayjs');
 const fs = require('fs');
 const readline = require('readline');
 
 const ReadLog = async (path, encoding) => {
     let lines = [];
-    let fstats = await fs.promises.stat(path);
-    if (fstats.isFile()) {
+    let stats = await GetStats(path);
+    if (stats.isFile) {
         let rstream = fs.createReadStream(path, { encoding: encoding });
         const rl = readline.promises.createInterface({
             input: rstream
@@ -19,4 +19,18 @@ const ReadLog = async (path, encoding) => {
     return lines;
 }
 
-module.exports = ReadLog;
+const GetLastModified = async (path) => {
+    let stats = await GetStats(path);
+    return stats.lastModified;
+}
+
+const GetStats = async (path) => {
+    let fstats = await fs.promises.stat(path);
+    let mtime = dayjs(fstats.mtimeMs);
+    if (!mtime.isValid()) {
+        throw new Error(`Could not parse mtimeMs for ${path}`);
+    }
+    return { lastModified: mtime, isFile: fstats.isFile() };
+}
+
+module.exports = { ReadLog, GetLastModified };
