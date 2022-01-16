@@ -6,13 +6,14 @@ const app = express();
 
 const port = parseInt(process.argv[2]);
 const filePath = process.argv[3];
+const fileEncoding = process.argv[4];
 
 let fileLines;
 
 app.get(filePath, async (req, res) => {
     const { query } = req;
     if (!fileLines) {
-        fileLines = await readLog(filePath)
+        fileLines = await readLog(filePath, fileEncoding)
         fileLines.reverse();
     }
     if (query.limit && parseInt(query.limit) > 0) {

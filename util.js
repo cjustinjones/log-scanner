@@ -2,11 +2,11 @@
 const fs = require('fs');
 const readline = require('readline');
 
-const ReadLog = async (path) => {
+const ReadLog = async (path, encoding) => {
     let lines = [];
     let fstats = await fs.promises.stat(path);
     if (fstats.isFile()) {
-        let rstream = fs.createReadStream(path, { encoding: 'utf16le' });
+        let rstream = fs.createReadStream(path, { encoding: encoding });
         const rl = readline.promises.createInterface({
             input: rstream
         });
