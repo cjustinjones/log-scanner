@@ -37,7 +37,7 @@ app.get(filePath, async (req, res, next) => {
                 keywords.push(query.keyword);
             }
             rslts = [];
-            let regexp = new RegExp(keywords.join("|"));
+            let regexp = new RegExp(keywords.join("|"), "i");
             fileLines.forEach(l => {
                 if (l.match(regexp)) {
                     rslts.push(l);
