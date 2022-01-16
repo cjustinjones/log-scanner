@@ -28,10 +28,28 @@ app.get(filePath, async (req, res, next) => {
                 fileLines.reverse();
             }
         }
-        if (query.limit && parseInt(query.limit) > 0) {
-            res.json(fileLines.slice(0, parseInt(query.limit)));
+        let rslts;
+        if (query.keyword) {
+            const keywords = [];
+            if (Array.isArray(query.keyword)) {
+                keywords.push(...query.keyword);
+            } else {
+                keywords.push(query.keyword);
+            }
+            rslts = [];
+            let regexp = new RegExp(keywords.join("|"));
+            fileLines.forEach(l => {
+                if (l.match(regexp)) {
+                    rslts.push(l);
+                }
+            })
         } else {
-            res.json(fileLines);
+            rslts = fileLines;
+        }
+        if (query.limit && parseInt(query.limit) > 0) {
+            res.json(rslts.slice(0, parseInt(query.limit)));
+        } else {
+            res.json(rslts);
         }
     } catch (err) {
         console.log("Error occured while handling request: " + err.message);
