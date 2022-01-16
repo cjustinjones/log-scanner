@@ -29,7 +29,11 @@ const LaunchWorkers = (workers) => {
             "worker.js", [v.port, k, v.encoding], { signal: signal, killSignal: 'SIGINT' }
         )
         v.proc.on("error", (err) => {
-            console.log(err);
+            if (typeof (err) === 'AbortError') {
+                console.log(`Worker handling ${k} on port ${v.port} received the ABORT`)
+            } else {
+                console.log(err.message);
+            }
         })
         v.proc.on("close", () => {
             console.log(`Worker handling ${k} on port ${v.port} has closed`)
