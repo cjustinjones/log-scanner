@@ -4,7 +4,7 @@
     "description": "A simple log scanner which returns a log file. Fronted by a REST endpoint.",
     "main": "lb.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
         "serve": "node lb.js 8080"
     },
     "repository": {

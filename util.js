@@ -2,7 +2,7 @@ const dayjs = require('dayjs');
 const fs = require('fs');
 const readline = require('readline');
 
-const ReadLog = async (path, encoding) => {
+const ReadLines = async (path, encoding) => {
     let lines = [];
     let stats = await GetStats(path);
     if (stats.isFile) {
@@ -33,4 +33,4 @@ const GetStats = async (path) => {
     return { lastModified: mtime, isFile: fstats.isFile() };
 }
 
-module.exports = { ReadLog, GetLastModified };
+module.exports = { ReadLines, GetLastModified };

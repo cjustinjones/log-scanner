@@ -1,6 +1,8 @@
 const express = require('express');
 const dayjs = require('dayjs');
-const { ReadLog, GetLastModified } = require('./util.js');
+const { ReadLog } = require('./readLog.js');
+const { FilterLog } = require('./filterLog.js');
+const { LimitResults } = require('./limitResults.js');
 
 const app = express();
 
@@ -8,54 +10,33 @@ const port = parseInt(process.argv[2]);
 const filePath = process.argv[3];
 const fileEncoding = process.argv[4];
 
-let fileLines;
-let prevLastModified;
-
-app.get(filePath, async (req, res, next) => {
+const handleRequest = async (req, res, next) => {
     try {
         const { query } = req;
-        if (!fileLines) {
-            console.log(`Reading ${filePath} for the first time`);
-            prevLastModified = await GetLastModified(filePath);
-            fileLines = await ReadLog(filePath, fileEncoding);
-            fileLines.reverse();
-        } else {
-            let currLastModified = await GetLastModified(filePath);
-            if (prevLastModified.isBefore(currLastModified)) {
-                console.log(`${filePath} has been updated since ${prevLastModified.format()}... reloading from FS`);
-                prevLastModified = currLastModified;
-                fileLines = await ReadLog(filePath, fileEncoding);
-                fileLines.reverse();
-            }
-        }
-        let rslts;
+        let fileLines = await ReadLog(filePath, fileEncoding);
+        const keywords = [];
         if (query.keyword) {
-            const keywords = [];
             if (Array.isArray(query.keyword)) {
                 keywords.push(...query.keyword);
             } else {
                 keywords.push(query.keyword);
             }
-            rslts = [];
-            let regexp = new RegExp(keywords.join("|"), "i");
-            fileLines.forEach(l => {
-                if (l.match(regexp)) {
-                    rslts.push(l);
-                }
-            })
-        } else {
-            rslts = fileLines;
         }
-        if (query.limit && parseInt(query.limit) > 0) {
-            res.json(rslts.slice(0, parseInt(query.limit)));
-        } else {
-            res.json(rslts);
+        let rslts = FilterLog(fileLines, keywords);
+        let limit = -1;
+        if (query.limit) {
+            try {
+                limit = parseInt(query.limit);
+            } catch (err) { }
         }
+        res.json(LimitResults(rslts, limit));
     } catch (err) {
         console.log("Error occured while handling request: " + err.message);
         next(err);
     }
-});
+}
+
+app.get(filePath, handleRequest);
 
 try {
     app.listen(port, err => {
