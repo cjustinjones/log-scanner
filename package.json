@@ -2,10 +2,10 @@
     "name": "log-scanner",
     "version": "1.0.0",
     "description": "A simple log scanner which returns a log file. Fronted by a REST endpoint.",
-    "main": "index.js",
+    "main": "lb.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "serve": "node lb.js"
+        "serve": "node lb.js 8080"
     },
     "repository": {
         "type": "git",

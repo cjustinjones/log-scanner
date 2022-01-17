@@ -6,11 +6,7 @@ const { fork } = require("child_process");
 const controller = new AbortController();
 const { signal } = controller;
 
-/*
- * Load balancer idea taken from 
- * https://www.geeksforgeeks.org/how-to-create-load-balancing-servers-using-node-js/ by @braktim99
- * Customer must be able to query the following:for a specific file in /var/loglast   events of specified filenbasic text/keyword filtering of eventsThe results returned must be reverse time ordere
- */
+const port = parseInt(process.argv[2]);
 
 const workers = new Map([
     ["/var/log/syslog", { "port": 3001, "encoding": "utf8" }],
@@ -75,10 +71,10 @@ app.use((req, res) => { forwardHandler(req, res) });
 
 LaunchWorkers(workers);
 
-const server = app.listen(8080, err => {
+const server = app.listen(port, err => {
     err ?
-        console.log("Failed to listen on PORT 8080") :
-        console.log("Load Balancer Server listening on PORT 8080");
+        console.log(`Failed to listen on PORT ${port}`) :
+        console.log(`Load Balancer Server listening on PORT ${port}`);
 });
 
 const shutdown = (sig) => {
