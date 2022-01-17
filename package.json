@@ -1,0 +1,32 @@
+{
+    "name": "log-scanner",
+    "version": "1.0.0",
+    "description": "A simple log scanner which returns a log file. Fronted by a REST endpoint.",
+    "main": "lb.js",
+    "scripts": {
+        "test": "jest",
+        "serve": "node lb.js 8080"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cjustinjones/log-scanner.git"
+    },
+    "author": "Chris Jones <cjustinjones@gmail.com>",
+    "license": "GPL-2.0",
+    "bugs": {
+        "url": "https://github.com/cjustinjones/log-scanner/issues"
+    },
+    "homepage": "https://github.com/cjustinjones/log-scanner#readme",
+    "devDependencies": {
+        "jest": "^27.4.7"
+    },
+    "dependencies": {
+        "axios": "^0.24.0",
+        "dayjs": "^1.10.7",
+        "express": "^4.17.2"
+    },
+    "engines": {
+        "node": ">=17.0.0",
+        "npm": "~8.3.0"
+    }
+}
