@@ -52,6 +52,17 @@ test('LimitResult returns all results with limit = -1', () => {
     let rslts = LimitResults(lines, -1);
     expect(rslts.length).toEqual(15);
 });
+
+test('LimitResult returns all results with limit = NaN', () => {
+    const lines = [
+        "foo", "bar", "baz", "another", "few", "lines", "have been",
+        "added", "my my my", "foo my man", "you", "Synchronized",
+        "bazoo", "baroo", "Foo"
+    ];
+    let rslts = LimitResults(lines, parseInt('q'));
+    expect(rslts.length).toEqual(15);
+});
+
 test('FilterLog / LimitResults returns 2 lines containing "my" and "foo"', () => {
     const lines = [
         "foo", "bar", "baz", "another", "few", "lines", "have been",

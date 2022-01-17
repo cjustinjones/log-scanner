@@ -23,11 +23,9 @@ const handleRequest = async (req, res, next) => {
             }
         }
         let rslts = FilterLog(fileLines, keywords);
-        let limit = -1;
+        let limit;
         if (query.limit) {
-            try {
-                limit = parseInt(query.limit);
-            } catch (err) { }
+            limit = parseInt(query.limit);
         }
         res.json(LimitResults(rslts, limit));
     } catch (err) {

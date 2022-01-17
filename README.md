@@ -53,3 +53,6 @@ command line parsing or read environment or configuration files.  It could take 
 directory for files, and automatically configure workers and the corresponding routes in the load balancer / worker
 framework.  As it stands, each file requires a separate worker; in reality, one worker could handle multiple files,
 thereby reducing the number of child processes that the load balancer forks.
+
+## TODO
+Need to mock out the FS module to adequately test the ReadLog method
