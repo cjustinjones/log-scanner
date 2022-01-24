@@ -23,16 +23,13 @@ const handleRequest = async (req, res, next) => {
         if (query.limit) {
             limit = parseInt(query.limit);
         }
-        let cont = true;
         const addNewLine = new Transform({
             transform(chunk, encoding, callback) {
-                //if (cont) {
                 if (Buffer.isBuffer(chunk)) {
                     chunk = chunk.toString()
                 }
-                cont = this.push(chunk + "\n");
+                this.push(chunk + "\n");
                 callback();
-                //}
             }
         });
         ReverseReadStream(filePath, fileEncoding, limit, keywords).pipe(addNewLine).pipe(res)
