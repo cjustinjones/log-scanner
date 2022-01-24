@@ -12,8 +12,9 @@ const workers = new Map([
     ["/var/log/syslog", { "port": 3001, "encoding": "utf8" }],
     ["/var/log/auth.log", { "port": 3002, "encoding": "utf8" }],
     ["/var/log/kern.log", { "port": 3003, "encoding": "utf8" }],
-    ["/users/preatl1cjj/dummy1.txt", { "port": 3004, "encoding": "utf8" }],
-    ["/users/preatl1cjj/foo.log", { "port": 3005, "encoding": "utf8" }]
+    ["/users/preatl1cjj/dummy.txt", { "port": 3004, "encoding": "utf8" }],
+    ["/users/preatl1cjj/foo.log", { "port": 3005, "encoding": "utf8" }],
+    ["/users/preatl1cjj/dummy1.txt", { "port": 3006, "encoding": "utf8" }]
 ]);
 
 const getWorkerUrl = (file, port) => `http://localhost:${port}${file}`;
@@ -52,17 +53,20 @@ const forwardHandler = async (req, res, next) => {
                     method: method,
                     headers: headers,
                     data: body,
-                    params: query
+                    params: query,
+                    responseType: 'stream'
                 });
-                res.send(response.data)
+                response.data.pipe(res);
             } catch (err) {
-                res.status(500).send("Internal Server Error!")
+                res.status(500).send("Internal Server Error!");
             }
         } else {
             res.status(404).send(`${path} is not available`);
         }
     } catch (err) {
         next(err);
+    } finally {
+        //res.end();
     }
 }
 
