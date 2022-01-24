@@ -1,8 +1,6 @@
 const express = require('express');
-const dayjs = require('dayjs');
-const { ReadLog } = require('./readLog.js');
-const { FilterLog } = require('./filterLog.js');
-const { LimitResults } = require('./limitResults.js');
+const { ReverseReadStream } = require('./reverseReadStream.js');
+const { Transform } = require('stream');
 
 const app = express();
 
@@ -13,7 +11,6 @@ const fileEncoding = process.argv[4];
 const handleRequest = async (req, res, next) => {
     try {
         const { query } = req;
-        let fileLines = await ReadLog(filePath, fileEncoding);
         const keywords = [];
         if (query.keyword) {
             if (Array.isArray(query.keyword)) {
@@ -22,15 +19,25 @@ const handleRequest = async (req, res, next) => {
                 keywords.push(query.keyword);
             }
         }
-        let rslts = FilterLog(fileLines, keywords);
-        let limit;
+        let limit = -1;
         if (query.limit) {
             limit = parseInt(query.limit);
         }
-        res.json(LimitResults(rslts, limit));
+        const addNewLine = new Transform({
+            transform(chunk, encoding, callback) {
+                if (Buffer.isBuffer(chunk)) {
+                    chunk = chunk.toString()
+                }
+                this.push(chunk + "\n");
+                callback();
+            }
+        });
+        ReverseReadStream(filePath, fileEncoding, limit, keywords).pipe(addNewLine).pipe(res)
     } catch (err) {
         console.log("Error occured while handling request: " + err.message);
         next(err);
+    } finally {
+        res.end
     }
 }
 
