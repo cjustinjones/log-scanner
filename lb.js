@@ -1,96 +1,71 @@
 const express = require('express');
-const app = express();
-const axios = require('axios');
-const { fork } = require("child_process");
-
-const controller = new AbortController();
-const { signal } = controller;
+const { ReverseReadStream } = require('./reverseReadStream.js');
+const { Transform } = require('stream');
 
 const port = parseInt(process.argv[2]);
 
 const workers = new Map([
-    ["/var/log/syslog", { "port": 3001, "encoding": "utf8" }],
-    ["/var/log/auth.log", { "port": 3002, "encoding": "utf8" }],
-    ["/var/log/kern.log", { "port": 3003, "encoding": "utf8" }],
-    ["/users/preatl1cjj/dummy.txt", { "port": 3004, "encoding": "utf8" }],
-    ["/users/preatl1cjj/foo.log", { "port": 3005, "encoding": "utf8" }],
-    ["/users/preatl1cjj/dummy1.txt", { "port": 3006, "encoding": "utf8" }]
+    ["/var/log/syslog", { "encoding": "utf8" }],
+    ["/var/log/auth.log", { "encoding": "utf8" }],
+    ["/var/log/kern.log", { "encoding": "utf8" }],
+    ["/users/preatl1cjj/dummy.txt", { "encoding": "utf8" }],
+    ["/users/preatl1cjj/foo.log", { "encoding": "utf8" }],
+    ["/users/preatl1cjj/dummy1.txt", { "encoding": "utf8" }]
 ]);
 
-const getWorkerUrl = (file, port) => `http://localhost:${port}${file}`;
+const DEFAULT_LIMIT = 100;
 
-const LaunchWorkers = (workers) => {
-    workers.forEach((v, k) => {
-        console.log(`Starting worker for ${k} on port ${v.port}`)
-        v.proc = fork(
-            "worker.js", [v.port, k, v.encoding], { signal: signal, killSignal: 'SIGINT' }
-        )
-        v.proc.on("error", (err) => {
-            if (err.code === 'ABORT_ERR') {
-                console.log(`Worker handling ${k} on port ${v.port} received the ABORT`)
-            } else {
-                console.log(err.message);
-            }
-        })
-        v.proc.on("close", () => {
-            console.log(`Worker handling ${k} on port ${v.port} has closed`)
-        })
-    });
-}
-
-// Receive new request
-// Forward to application server
-const forwardHandler = async (req, res, next) => {
-    const { method, headers, body, query, path } = req;
-    try {
-        const worker = workers.get(path);
-        if (worker) {
-            let workerUrl = getWorkerUrl(path, worker.port);
-            console.log(`Sending request for ${path} to worker on port ${worker.port}`);
-            try {
-                const response = await axios({
-                    url: workerUrl,
-                    method: method,
-                    headers: headers,
-                    data: body,
-                    params: query,
-                    responseType: 'stream'
-                });
-                response.data.pipe(res);
-            } catch (err) {
-                res.status(500).send("Internal Server Error!");
-            }
-        } else {
-            res.status(404).send(`${path} is not available`);
-        }
-    } catch (err) {
-        next(err);
-    } finally {
-        //res.end();
-    }
-}
+const app = express();
 
 app.get('/favicon.ico', (req, res) => res.status(204));
 
-app.use((req, res) => { forwardHandler(req, res) });
+workers.forEach((v, k) => {
+    app.get(k, async (req, res, next) => {
+        const filePath = k;
+        const fileEncoding = v.encoding;
+        try {
+            const controller = new AbortController();
+            req.on('close', () => {
+                controller.abort();
+            });
+            const { query } = req;
+            const keywords = [];
+            if (query.keyword) {
+                if (Array.isArray(query.keyword)) {
+                    keywords.push(...query.keyword);
+                } else {
+                    keywords.push(query.keyword);
+                }
+            }
+            let limit = DEFAULT_LIMIT;
+            if (query.limit) {
+                limit = parseInt(query.limit);
+            }
+            const addNewLine = new Transform({
+                transform(chunk, encoding, callback) {
+                    if (Buffer.isBuffer(chunk)) {
+                        chunk = chunk.toString()
+                    }
+                    this.push(chunk + "\n");
+                    callback();
+                }
+            });
+            ReverseReadStream(
+                filePath,
+                fileEncoding,
+                limit,
+                keywords,
+                controller.signal
+            ).pipe(addNewLine).pipe(res).on('end', () => { console.log('foo') })
+        } catch (err) {
+            console.log("Error occured while handling request: " + err.message);
+            next(err);
+        } finally { }
+    })
+});
 
-LaunchWorkers(workers);
-
-const server = app.listen(port, err => {
+app.listen(port, err => {
     err ?
         console.log(`Failed to listen on PORT ${port}`) :
         console.log(`Load Balancer Server listening on PORT ${port}`);
 });
-
-const shutdown = (sig) => {
-    console.log(`${sig} signal received`)
-    console.log("...closing Load Balancer")
-    server.close(() => {
-        console.log('Load Balancer has closed')
-    });
-    console.log("...closing Workers")
-    controller.abort();
-}
-
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));

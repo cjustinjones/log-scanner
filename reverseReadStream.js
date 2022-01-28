@@ -71,14 +71,20 @@ async function* ReverseReadLineGenerator(path, encoding, limit, keywords) {
             yield 'No Results Found';
         }
     } catch (err) {
-        console.log(`Error handling request for ${path}`);
-        console.log(err);
+        if (err.name === 'AbortError') {
+            console.log("User aborted request");
+        } else {
+            console.log(`Error handling request for ${path}`);
+            console.log(err);
+        }
     } finally {
         console.log(`Closing ${path}`);
         await fileHandle?.close();
     }
 }
 
-const ReverseReadStream = (path, encoding, limit, keywords) => Readable.from(ReverseReadLineGenerator(path, encoding, limit, keywords));
+const ReverseReadStream = (path, encoding, limit, keywords, signal) => Readable.from(
+    ReverseReadLineGenerator(path, encoding, limit, keywords), { signal: signal }
+);
 
 module.exports = { ReverseReadStream };
