@@ -99,6 +99,9 @@ logFileRoutes.forEach(lfr => {
     }
 });
 
+/*
+ * TODO: Save added route to disk
+ */
 app.post("/admin/cfg/alfr", (req, res) => {
     let f = req.get("X-AuthToken");
     if (!req.get("X-AuthToken") || req.get("X-AuthToken") != 'easytocrack') {
