@@ -1,4 +1,5 @@
 
+/*
 const { FilterLog } = require('./filterLog.js');
 const { LimitResults } = require('./limitResults.js');
 
@@ -78,3 +79,4 @@ test('FilterLog / LimitResults returns 2 lines containing "my" and "foo"', () =>
     expect(rslts).not.toContain("foo my man");
     expect(rslts).not.toContain("Foo");
 });
+*/
