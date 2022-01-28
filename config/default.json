@@ -1,0 +1,39 @@
+{
+    "server": {
+        "host": "localhost",
+        "port": 8080
+    },
+    "defaultLineLimit": 100,
+    "logFileRoutes": [
+        {
+            "routePath": "/var/log/syslog",
+            "filePath": "/var/log/syslog",
+            "encoding": "utf8"
+        },
+        {
+            "routePath": "/var/log/auth.log",
+            "filePath": "/var/log/auth.log",
+            "encoding": "utf8"
+        },
+        {
+            "routePath": "/var/log/kern.log",
+            "filePath": "/var/log/kern.log",
+            "encoding": "utf8"
+        },
+        {
+            "routePath": "/users/preatl1cjj/dummy.txt",
+            "filePath": "/users/preatl1cjj/dummy.txt",
+            "encoding": "utf8"
+        },
+        {
+            "routePath": "/users/preatl1cjj/foo.log",
+            "filePath": "/users/preatl1cjj/foo.log",
+            "encoding": "utf8"
+        },
+        {
+            "routePath": "/users/preatl1cjj/dummy1.txt",
+            "filePath": "/users/preatl1cjj/dummy1.txt",
+            "encoding": "utf8"
+        }
+    ]
+}

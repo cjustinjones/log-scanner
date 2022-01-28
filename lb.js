@@ -1,28 +1,39 @@
+
+const config = require('config')
 const express = require('express');
 const { ReverseReadStream } = require('./reverseReadStream.js');
 const { Transform } = require('stream');
 
-const port = parseInt(process.argv[2]);
+let port;
+if (config.has("server.port")) {
+    port = config.get("server.port");
+} else {
+    port = 8080;
+}
 
-const workers = new Map([
-    ["/var/log/syslog", { "encoding": "utf8" }],
-    ["/var/log/auth.log", { "encoding": "utf8" }],
-    ["/var/log/kern.log", { "encoding": "utf8" }],
-    ["/users/preatl1cjj/dummy.txt", { "encoding": "utf8" }],
-    ["/users/preatl1cjj/foo.log", { "encoding": "utf8" }],
-    ["/users/preatl1cjj/dummy1.txt", { "encoding": "utf8" }]
-]);
+let defaultLineLimit;
+if (config.has("defaultLineLimit")) {
+    defaultLineLimit = config.get("defaultLineLimit");
+} else {
+    defaultLineLimit = 100;
+}
 
-const DEFAULT_LIMIT = 100;
+let logFileRoutes;
+if (config.has("logFileRoutes")) {
+    logFileRoutes = config.get("logFileRoutes");
+}
+else {
+    logFileRoutes = [];
+}
 
 const app = express();
 
 app.get('/favicon.ico', (req, res) => res.status(204));
 
-workers.forEach((v, k) => {
-    app.get(k, async (req, res, next) => {
-        const filePath = k;
-        const fileEncoding = v.encoding;
+logFileRoutes.forEach(lfr => {
+    app.get(lfr.routePath, async (req, res, next) => {
+        const filePath = lfr.filePath;
+        const fileEncoding = lfr.encoding;
         try {
             const controller = new AbortController();
             req.on('close', () => {
@@ -37,7 +48,7 @@ workers.forEach((v, k) => {
                     keywords.push(query.keyword);
                 }
             }
-            let limit = DEFAULT_LIMIT;
+            let limit = defaultLineLimit;
             if (query.limit) {
                 limit = parseInt(query.limit);
             }
@@ -56,7 +67,7 @@ workers.forEach((v, k) => {
                 limit,
                 keywords,
                 controller.signal
-            ).pipe(addNewLine).pipe(res).on('end', () => { console.log('foo') })
+            ).pipe(addNewLine).pipe(res);
         } catch (err) {
             console.log("Error occured while handling request: " + err.message);
             next(err);
